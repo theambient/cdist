@@ -3,8 +3,8 @@ id: bar
 version: 0.0.1
 source: .
 deps:
-	- foo@0.0.1
+    - foo@0.0.1
 build:
-	- cmake .. -DCMAKE_SYSTEM_LIBRARY_PATH=$INCLUDE_DIRS -DCMAKE_SYSTEM_INCLUDE_PATH=$LIB_DIRS
-	- make
-	- make install
+    - mkdir -p build
+    - "cd build && cmake .. '-DCMAKE_SYSTEM_INCLUDE_PATH={{#INCLUDE_DIRS}}{{x}};{{/INCLUDE_DIRS}}' '-DCMAKE_SYSTEM_LIBRARY_PATH={{#LIB_DIRS}}{{x}};{{/LIB_DIRS}}'"
+    - "cd build && make"

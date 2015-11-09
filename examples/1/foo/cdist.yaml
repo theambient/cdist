@@ -1,11 +1,10 @@
-
 id: foo
 version: 0.0.1
 source: .
 build:
-	- make
-	- make install DESTDIR=$DESTDIR PREFIX=
+    - make
+    - "make install DESTDIR={{DESTDIR}} PREFIX="
 export:
-	include_dir: $DESTDIR/include
-	library_dir: $DESTDIR/lib
-	library: foo
+    include_dir: "{{DESTDIR}}/include"
+    library_dir: "{{DESTDIR}}/lib"
+    library: foo
