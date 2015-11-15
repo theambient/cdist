@@ -30,9 +30,24 @@ class LocalPackages
 
 	public void install(Package p)
 	{
+		if(std.file.exists(_pkg_install_file(p)))
+		{
+			Console.dim("skipping installing package %s: already installed".format(p.fullname));
+			return;
+		}
+
 		_download(p);
 		_build(p);
+
+		auto install_file = _pkg_install_file(p);
+		new File(install_file, "w").close(); //touch
+
 		Console.bold("installed package " ~ p.fullname);
+	}
+
+	private string _pkg_install_file(Package p)
+	{
+		return buildPath(p.pkg_dir, "installed");
 	}
 
 	public void build(Package p)
