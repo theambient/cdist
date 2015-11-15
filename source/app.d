@@ -66,7 +66,7 @@ class LocalPackages
 
 			enforce(r.status == 0, "failed to fetch package %s src:\n%s".format(p.fullname, r.output));
 		}
-		else if(urlparts.scheme == "file")
+		else if(urlparts.scheme == "local")
 		{
 			auto r = execute(["cp", "-r", urlparts.location, p.src_dir]);
 
@@ -149,8 +149,7 @@ class App
 
 		if(_args["update"].isTrue)
 		{
-			throw new Exception("Not Implemented");
-			//_registry.update();
+			_registry.update();
 		}
 		else if(_args["push"].isTrue)
 		{
@@ -214,10 +213,11 @@ class App
 
 		if(_args["--local"].isTrue)
 		{
-			path = "file://" ~ buildPath(std.file.getcwd(), p.source);
+			path = "local://" ~ buildPath(std.file.getcwd(), p.source);
 		}
 		else
 		{
+			// need to think is it a good way or not
 			auto r = execute(["git", "remote", "-v"]);
 			enforceEx!SysExitEx(r.status == 0, "failed to execute git remote -v:\n" ~ r.output);
 
@@ -233,6 +233,11 @@ class App
 					path = "git://" ~ m.captures[1];
 				}
 			}
+
+			r = execute(["git", "log", "--format=%H"]);
+			enforceEx!SysExitEx(r.status == 0, "failed to execute git log:\n" ~ r.output);
+
+			path ~= "#" ~ r.output.strip();
 		}
 
 		enforce!SysExitEx(path != null, "failed to find origin");

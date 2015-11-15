@@ -39,7 +39,7 @@ unittest
 
 	up = urlsplit("/host/path/file");
 	assert(up.scheme == "");
-	assert(up.location == "host/path/file?123");
+	assert(up.location == "/host/path/file");
 
 	up = urlsplit("git://host/path/file.git");
 	assert(up.scheme == "git");
