@@ -242,7 +242,8 @@ class Registry : IRegistry
 
 	public override Package[] build_deps_list(Package p)
 	{
-		throw new Exception("Not Implemented");
+		auto r = new Resolver(this);
+		return r.resolve(p);
 	}
 }
 
@@ -261,6 +262,7 @@ private class Node
 private class Resolver
 {
 	private Node[string] _finder;
+	private bool[string] _marks; // actually set, value has no matter
 	private Package[] _package_list;
 	private IRegistry _registry;
 
@@ -286,12 +288,14 @@ private class Resolver
 			auto p = _registry.read_package(pd);
 
 			auto node = _finder.get(pd.id, null);
+			bool already_existed = node !is null;
 
 			if(node is null)
 			{
 				node = new Node(PackageDesc(d.id, d.vers_max));
+				_finder[node.pd.id] = node;
 			}
-			else if(node.pd.vers != d.vers_max)
+			else
 			{
 				if(node.pd.vers != pd.vers)
 				{
@@ -304,16 +308,21 @@ private class Resolver
 							node.back_links[0].pd.fullname,
 						));
 				}
+
+				if(node.pd.id !in _marks)
+				{
+					throw new Exception("loop detected: %s requires %s but it is already in path".format(root.pd.fullname, pd.fullname));
+				}
 			}
 
 			root.links ~= node;
 			node.back_links ~= root;
 
-			_add_deps(node, p.deps);
-
-			if(!canFind(_package_list, p))
+			if(!already_existed)
 			{
+				_add_deps(node, p.deps);
 				_package_list ~= p;
+				_marks[p.id] = true;
 			}
 		}
 	}
@@ -385,6 +394,7 @@ unittest
 
 	auto deps = resolver.resolve(root);
 
+	//writefln("deps: %s", map!(x => x.fullname)(deps).array);
 	assert(map!(x => x.fullname)(deps).array == ["D@1", "C@1", "B@1"]);
 }
 
